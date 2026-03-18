@@ -1,1 +1,219 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Level 1 - Mobile Co-op</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Comic Sans MS', Arial, sans-serif; background-color: #87CEEB; user-select: none; touch-action: none; }
+        #game-world { position: relative; width: 100vw; height: 70vh; background-image: linear-gradient(to bottom, #87CEEB 50%, #8B4513 50%, #228B22 100%); display: none; }
+        
+        #start-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 100; display: flex; justify-content: center; align-items: center; flex-direction: column; text-align: center; padding: 20px; box-sizing: border-box;}
+        #start-screen h1 { color: #f1c40f; font-size: 35px; text-shadow: 2px 2px 0 red; margin-bottom: 10px; }
+        #start-screen p { color: #bdc3c7; font-size: 16px; margin-bottom: 30px; }
+        #start-btn { background: #e74c3c; color: white; font-size: 24px; font-weight: bold; padding: 15px 40px; border: 3px solid white; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 0 #c0392b; }
+        
+        #hero, #enemy, .friend { position: absolute; bottom: 20px; width: 15vw; max-width: 70px; min-width: 50px; transition: 0.2s linear; }
+        #hero { left: 30%; z-index: 10; }
+        #enemy { right: 5%; }
+        #friend1 { left: 10%; filter: hue-rotate(90deg); } 
+        #friend2 { left: 50%; filter: hue-rotate(240deg); } 
+        .friend-label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 2px 4px; border-radius: 5px; font-size: 10px; white-space: nowrap; }
 
+        .speech-bubble { position: absolute; bottom: 90px; background: white; color: black; padding: 5px 10px; border-radius: 10px; border: 2px solid black; font-weight: bold; font-size: 12px; opacity: 0; transition: 0.3s; z-index: 30; white-space: nowrap; }
+
+        .health-container { background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; border: 1px solid white; z-index: 20; }
+        #hero-health-board { position: absolute; top: 50px; left: 5px; }
+        #enemy-health-board { position: absolute; bottom: 90px; right: 5px; }
+        progress { width: 60px; height: 10px; border-radius: 5px; }
+        progress::-webkit-progress-value { background-color: #e74c3c; border-radius: 5px;}
+        progress::-webkit-progress-bar { background-color: #ddd; border-radius: 5px;}
+
+        #weapon-board { position: absolute; top: 5px; right: 5px; background: #f1c40f; color: #333; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20; }
+        #score-board { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20;}
+        .highlight-coin { color: gold; } .highlight-medkit { color: #ff7675; } .highlight-task { color: #2ecc71; margin-bottom: 5px; display: block;}
+
+        .item { position: absolute; bottom: 30px; font-size: 24px; z-index: 5; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.2); } }
+
+        #controls-area { height: 30vh; background: #2c3e50; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; display: none; box-sizing: border-box; }
+        .joystick-left { display: flex; gap: 10px; }
+        .action-right { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; width: 50%; }
+        .game-btn { border: 2px solid white; border-radius: 50%; color: white; width: 55px; height: 55px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); background: rgba(255, 255, 255, 0.2); touch-action: manipulation; }
+        .game-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.4); }
+        .attack-btn { background: #e74c3c; width: 65px; height: 65px; font-size: 28px; } 
+        .heal-btn { background: #2ecc71; } 
+        .upgrade-btn { background: #9b59b6; } 
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>रोबोट वॉर्स: Level 1</h1>
+        <p>टास्क: दोस्तों के साथ मिलकर दुश्मन को हराएं!</p>
+        <button id="start-btn" onclick="startGame()" ontouchstart="startGame()">▶️ START</button>
+    </div>
+
+    <div id="game-world">
+        <div id="score-board">
+            <span class="highlight-task">🎯 टास्क: दुश्मन को मिलकर हराएं</span>
+            <span class="highlight-coin">🪙 कॉइन्स: <span id="coin-count">0</span></span> | 
+            <span class="highlight-medkit">💊 मेड किट: <span id="medkit-count">0</span></span>
+        </div>
+        <div id="hero-health-board" class="health-container">
+            हीरो HP: <progress id="hero-hp-bar" value="100" max="100"></progress> <span id="hero-hp-text">100</span>
+        </div>
+        <div id="weapon-board">⚔️ तलवार (डैमेज: 15)</div>
+        <div id="enemy-health-board" class="health-container">
+            दुश्मन: <progress id="enemy-hp-bar" value="100" max="100"></progress> <span id="enemy-hp-text">100</span>
+        </div>
+
+        <div class="speech-bubble" id="bubble1" style="left: 10%;">चलो मारो!</div>
+        <div class="speech-bubble" id="bubble2" style="left: 45%;">सब मिल कर!</div>
+
+        <div class="item medkit" style="left: 60%;">💊</div>
+        <div class="item coin" style="left: 75%;">🪙</div>
+
+        <div id="friend1" class="friend"><img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Friend1" alt="Friend 1" style="width:100%;"><div class="friend-label">दोस्त 1</div></div>
+        <img id="hero" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" alt="Hero">
+        <div id="friend2" class="friend"><img src="https://api.dicebear.com/Adriaen.svg?seed=Friend2" alt="Friend 2" style="width:100%;"><div class="friend-label">दोस्त 2</div></div>
+        <img id="enemy" src="https://api.dicebear.com/7.x/bottts/svg?seed=Robot" alt="Enemy">
+    </div>
+
+    <div id="controls-area">
+        <div class="joystick-left">
+            <div class="game-btn" ontouchstart="moveHero('left')" onmousedown="moveHero('left')">⬅️</div>
+            <div class="game-btn" ontouchstart="moveHero('right')" onmousedown="moveHero('right')">➡️</div>
+        </div>
+        <div class="action-right">
+            <div class="game-btn heal-btn" ontouchstart="healHero()" onmousedown="healHero()">💖</div>
+            <div class="game-btn upgrade-btn" ontouchstart="upgradeWeapon()" onmousedown="upgradeWeapon()">⚒️</div>
+            <div class="game-btn attack-btn" ontouchstart="heroAttack()" onmousedown="heroAttack()">⚔️</div>
+        </div>
+    </div>
+
+    <script>
+        function startGame() {
+            document.getElementById("start-screen").style.display = "none";
+            document.getElementById("game-world").style.display = "block";
+            document.getElementById("controls-area").style.display = "flex";
+            startEnemyAttack(); 
+        }
+
+        let heroPosition = 30; 
+        const heroElement = document.getElementById("hero");
+        const enemyElement = document.getElementById("enemy");
+        
+        let heroHP = 100; let enemyHP = 100; let medkits = 0; let heroDamage = 15; let upgradeCost = 3; 
+        let globalCoins = parseInt(localStorage.getItem("globalCoins")) || 0;
+        document.getElementById("coin-count").innerText = globalCoins;
+
+        function moveHero(direction) {
+            if (direction === 'right' && heroPosition < 80) heroPosition += 5; 
+            else if (direction === 'left' && heroPosition > 0) heroPosition -= 5; 
+            heroElement.style.left = heroPosition + "%";
+            checkItemsCollection(); 
+        }
+
+        function checkItemsCollection() {
+            let heroRect = heroElement.getBoundingClientRect();
+            let allItems = document.querySelectorAll('.item');
+            allItems.forEach(item => {
+                if (item.style.display !== 'none') {
+                    let itemRect = item.getBoundingClientRect();
+                    if (heroRect.right > itemRect.left && heroRect.left < itemRect.right) {
+                        item.style.display = "none"; 
+                        if (item.classList.contains('medkit')) {
+                            medkits++; document.getElementById("medkit-count").innerText = medkits;
+                            heroElement.style.filter = "drop-shadow(0px 0px 15px #ff7675)";
+                        } else if (item.classList.contains('coin')) {
+                            globalCoins++; document.getElementById("coin-count").innerText = globalCoins;
+                            localStorage.setItem("globalCoins", globalCoins);
+                            heroElement.style.filter = "drop-shadow(0px 0px 15px gold)";
+                        }
+                        setTimeout(() => { heroElement.style.filter = "none"; }, 300);
+                    }
+                }
+            });
+        }
+
+        function healHero() {
+            if (medkits > 0 && heroHP < 100) {
+                medkits--; heroHP += 40; if(heroHP > 100) heroHP = 100; 
+                document.getElementById("medkit-count").innerText = medkits; updateHeroHealth();
+                heroElement.style.filter = "drop-shadow(0px 0px 20px #2ecc71)";
+                setTimeout(() => { heroElement.style.filter = "none"; }, 400);
+            } else alert("आपके पास मेड किट (💊) नहीं है या हेल्थ फुल है!");
+        }
+
+        function upgradeWeapon() {
+            if (globalCoins >= upgradeCost) {
+                globalCoins -= upgradeCost; heroDamage += 15; upgradeCost += 2; 
+                document.getElementById("coin-count").innerText = globalCoins;
+                localStorage.setItem("globalCoins", globalCoins);
+                document.getElementById("weapon-board").innerText = `⚔️ (डैमेज: ${heroDamage})`;
+                document.getElementById("weapon-board").style.background = "#9b59b6";
+                document.getElementById("weapon-board").style.color = "white";
+                heroElement.style.transform = "scale(1.2)";
+                setTimeout(() => { heroElement.style.transform = "scale(1)"; }, 400);
+            } else alert(`अपग्रेड के लिए ${upgradeCost} कॉइन चाहिए!`);
+        }
+
+        function friendsCheer() {
+            const bubbles = [document.getElementById("bubble1"), document.getElementById("bubble2")];
+            const randomFriend = bubbles[Math.floor(Math.random() * bubbles.length)];
+            randomFriend.style.opacity = 1; setTimeout(() => { randomFriend.style.opacity = 0; }, 1000);
+        }
+
+        function heroAttack() {
+            let heroRect = heroElement.getBoundingClientRect(); let enemyRect = enemyElement.getBoundingClientRect();
+            let distance = enemyRect.left - heroRect.right;
+            heroElement.style.transform = "rotate(20deg) translateX(10px)";
+            setTimeout(() => { heroElement.style.transform = "rotate(0deg) translateX(0)"; }, 200);
+            
+            if (distance < 70 && enemyHP > 0) {
+                enemyHP -= heroDamage; if(enemyHP < 0) enemyHP = 0; 
+                enemyElement.style.filter = "brightness(2) invert(1)"; updateEnemyHealth();
+                setTimeout(() => { enemyElement.style.filter = "none"; }, 200);
+                friendsCheer();
+            }
+        }
+
+        let enemyAttackInterval;
+        function startEnemyAttack() {
+            enemyAttackInterval = setInterval(() => {
+                if (enemyHP > 0 && heroHP > 0) {
+                    let heroRect = heroElement.getBoundingClientRect(); let enemyRect = enemyElement.getBoundingClientRect();
+                    let distance = enemyRect.left - heroRect.right;
+                    if (distance > -30 && distance < 80) {
+                        heroHP -= 10; if(heroHP < 0) heroHP = 0; updateHeroHealth();
+                        heroElement.style.filter = "brightness(0.5) sepia(1) hue-rotate(300deg) saturate(5) drop-shadow(0 0 10px red)";
+                        heroElement.style.transform = "translateX(-10px)"; 
+                        setTimeout(() => { heroElement.style.filter = "none"; heroElement.style.transform = "scale(1)"; }, 300);
+                    }
+                }
+            }, 1500);
+        }
+
+        function updateHeroHealth() {
+            document.getElementById("hero-hp-bar").value = heroHP; document.getElementById("hero-hp-text").innerText = heroHP;
+            if (heroHP === 0) {
+                clearInterval(enemyAttackInterval);
+                alert("ओह नो! आपकी टीम हार गई। पेज रिफ्रेश करें और फिर कोशिश करें!");
+                heroElement.style.transform = "rotate(-90deg)"; 
+            }
+        }
+
+        function updateEnemyHealth() {
+            document.getElementById("enemy-hp-bar").value = enemyHP; document.getElementById("enemy-hp-text").innerText = enemyHP;
+            if (enemyHP === 0) {
+                clearInterval(enemyAttackInterval); enemyElement.style.display = "none"; 
+                setTimeout(() => {
+                    alert("सुपर! आपने दुश्मन को हरा दिया और लेवल 1 पार कर लिया!");
+                    window.location.href = "index.html"; 
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
