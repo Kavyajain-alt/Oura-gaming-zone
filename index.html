@@ -3,79 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>रोबोट वॉर्स - मास्टर गेम</title>
+    <title>ओरिजिनल गेम - City War</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background-color: #2c3e50; color: white; user-select: none; touch-action: none; }
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background-color: #111; color: white; user-select: none; touch-action: none; }
         
         /* --- मेनू और एडमिन स्क्रीन --- */
         .screen { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding: 20px; box-sizing: border-box; text-align: center; }
-        #main-menu { display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #1a252f; }
-        h1 { color: #f1c40f; text-shadow: 2px 2px 5px black; font-size: 35px; }
+        #main-menu { display: flex; flex-direction: column; justify-content: center; align-items: center; background: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1600&q=80') center/cover; }
+        #main-menu::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: -1; }
+        
+        h1 { color: #f1c40f; text-shadow: 2px 2px 5px black; font-size: 40px; margin-bottom: 10px; }
+        p { font-size: 18px; color: #ecf0f1; margin-bottom: 30px; text-shadow: 1px 1px 3px black; }
+        
         .btn { padding: 15px 30px; margin: 10px; font-size: 20px; font-weight: bold; border-radius: 10px; border: 2px solid white; cursor: pointer; width: 80%; max-width: 300px; box-shadow: 0px 5px 0px rgba(0,0,0,0.5); }
         .btn:active { transform: translateY(5px); box-shadow: none; }
         .btn-play { background-color: #2ecc71; color: white; }
         .btn-admin { background-color: #e74c3c; color: white; }
         
         input { padding: 10px; font-size: 16px; border-radius: 5px; margin: 10px 0; width: 80%; max-width: 300px; }
-        .admin-box { background: white; color: black; padding: 20px; border-radius: 10px; display: inline-block; width: 90%; max-width: 400px; margin-top: 50px; }
+        .admin-box { background: rgba(255,255,255,0.9); color: black; padding: 20px; border-radius: 10px; display: inline-block; width: 90%; max-width: 400px; margin-top: 50px; }
 
-        /* --- गेम की दुनिया --- */
-        #game-world { background-image: linear-gradient(to bottom, #4b7bec 50%, #38ada9 50%, #079992 100%); height: 65vh; position: relative; overflow: hidden; border-bottom: 5px solid #1e272e; }
-        
-        /* 🌟 ओरिजिनल फील: करैक्टर और दोस्त 🌟 */
-        #hero, #enemy, .friend { 
-            position: absolute; bottom: 20px; max-width: 80px; min-width: 60px; width: 15vw;
-            transition: left 0.2s linear, transform 0.1s; 
-            filter: drop-shadow(0px 10px 5px rgba(0,0,0,0.4)); 
-            animation: breathe 1.5s infinite alternate ease-in-out; /* साँस लेना */
+        /* --- गेम की दुनिया (Real City Scene) --- */
+        #game-world { 
+            /* असली शहर की हाई-क्वालिटी फोटो */
+            background: url('https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat; 
+            height: 65vh; 
+            position: relative; 
+            overflow: hidden; 
         }
-        #hero { left: 30%; z-index: 10; } 
-        #enemy { right: 5%; animation-delay: 0.5s; }
-        #friend1 { left: 10%; filter: hue-rotate(90deg) drop-shadow(0px 10px 5px rgba(0,0,0,0.4)); animation-delay: 0.2s; } 
-        #friend2 { left: 50%; filter: hue-rotate(240deg) drop-shadow(0px 10px 5px rgba(0,0,0,0.4)); animation-delay: 0.7s; } 
         
-        @keyframes breathe { 0% { transform: scaleY(1) translateY(0px); } 100% { transform: scaleY(0.95) translateY(3px); } }
-        .walking { animation: walk 0.3s infinite alternate !important; }
-        @keyframes walk { 0% { transform: rotate(-10deg) translateY(-5px); } 100% { transform: rotate(10deg) translateY(0px); } }
+        /* असली सड़क (जिस पर करैक्टर खड़े होंगे) */
+        .road {
+            position: absolute;
+            bottom: 0;
+            width: 100vw;
+            height: 15vh;
+            background: linear-gradient(to bottom, #34495e, #111);
+            border-top: 4px solid #f1c40f; /* सड़क की पीली लाइन */
+            box-shadow: inset 0 20px 20px rgba(0,0,0,0.6);
+            z-index: 1;
+        }
+        
+        /* 🌟 फुल बॉडी करैक्टर और असली परछाई 🌟 */
+        #hero, #enemy, .friend { 
+            position: absolute; 
+            bottom: 8vh; /* सड़क के ऊपर खड़े हैं */
+            height: 130px; /* करैक्टर की हाइट बढ़ा दी है (Full Body) */
+            width: auto;
+            transition: left 0.2s linear; 
+            /* ज़मीन पर पड़ने वाली असली 3D परछाई */
+            filter: drop-shadow(10px 15px 5px rgba(0,0,0,0.7)); 
+            z-index: 10;
+        }
+        #hero { left: 30%; animation: breathe 2s infinite alternate ease-in-out; } 
+        #enemy { right: 5%; animation: breathe 2s infinite alternate ease-in-out; animation-delay: 0.5s; transform: scaleX(-1); /* दुश्मन हमारी तरफ देखेगा */ }
+        #friend1 { left: 10%; filter: hue-rotate(90deg) drop-shadow(10px 15px 5px rgba(0,0,0,0.7)); height: 110px; animation-delay: 0.2s; } 
+        #friend2 { left: 50%; filter: hue-rotate(240deg) drop-shadow(10px 15px 5px rgba(0,0,0,0.7)); height: 110px; animation-delay: 0.7s; } 
+        
+        /* नेचुरल साँस लेने का इफ़ेक्ट */
+        @keyframes breathe { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.96); } }
+        /* दुश्मन के लिए अलग कीफ्रेम क्योंकि वो घूमा हुआ (scaleX-1) है */
+        @keyframes breatheEnemy { 0% { transform: scaleX(-1) scaleY(1); } 100% { transform: scaleX(-1) scaleY(0.96); } }
 
         /* --- UI और बॉर्डर्स --- */
-        .friend-label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 2px 4px; border-radius: 5px; font-size: 10px; white-space: nowrap; }
-        .speech-bubble { position: absolute; bottom: 100px; background: white; color: black; padding: 5px 10px; border-radius: 10px; border: 2px solid black; font-weight: bold; font-size: 12px; opacity: 0; transition: 0.3s; z-index: 30; white-space: nowrap; }
+        .friend-label { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 2px 6px; border-radius: 5px; font-size: 10px; white-space: nowrap; border: 1px solid #777; }
+        .speech-bubble { position: absolute; bottom: 130px; background: white; color: black; padding: 5px 10px; border-radius: 10px; border: 2px solid black; font-weight: bold; font-size: 12px; opacity: 0; transition: 0.3s; z-index: 30; white-space: nowrap; }
         
-        .health-container { background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; border: 1px solid white; z-index: 20; }
+        .health-container { background: rgba(0, 0, 0, 0.8); color: white; padding: 4px 8px; border-radius: 8px; font-weight: bold; font-size: 12px; border: 1px solid white; z-index: 20; box-shadow: 0px 5px 10px rgba(0,0,0,0.5); }
         #hero-health-board { position: absolute; top: 40px; left: 5px; }
-        #enemy-health-board { position: absolute; bottom: 100px; right: 5px; }
-        progress { width: 60px; height: 10px; border-radius: 5px; }
+        #enemy-health-board { position: absolute; bottom: 17vh; right: 5px; } /* सड़क के ऊपर */
+        progress { width: 60px; height: 12px; border-radius: 5px; }
         progress::-webkit-progress-value { background-color: #e74c3c; border-radius: 5px;}
         progress::-webkit-progress-bar { background-color: #ddd; border-radius: 5px;}
 
-        #weapon-board { position: absolute; top: 5px; right: 5px; background: #f1c40f; color: #333; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20; }
-        #score-board { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20; text-align: left;}
+        #weapon-board { position: absolute; top: 5px; right: 5px; background: #f1c40f; color: #333; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20; box-shadow: 0px 5px 10px rgba(0,0,0,0.5); }
+        #score-board { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; z-index: 20; text-align: left; box-shadow: 0px 5px 10px rgba(0,0,0,0.5);}
         
-        .item { position: absolute; bottom: 30px; font-size: 24px; z-index: 5; animation: pulse 1s infinite alternate; }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.2); } }
+        .item { position: absolute; bottom: 15vh; font-size: 24px; z-index: 15; animation: pulse 1s infinite alternate; filter: drop-shadow(0px 5px 5px black); }
+        @keyframes pulse { from { transform: scale(1) translateY(0); } to { transform: scale(1.2) translateY(-10px); } }
 
         /* --- मोबाइल कंट्रोल्स --- */
-        #controls-area { height: 35vh; background: #1e272e; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; }
+        #controls-area { height: 35vh; background: #0a0a0a; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; box-sizing: border-box; border-top: 2px solid #333; }
         .joystick-left { display: flex; gap: 10px; }
         .action-right { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; width: 50%; }
-        .game-btn { border: 2px solid white; border-radius: 50%; color: white; width: 55px; height: 55px; font-size: 22px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); background: rgba(255, 255, 255, 0.2); }
-        .game-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.4); }
-        .attack-btn { background: #e74c3c; width: 65px; height: 65px; font-size: 28px; } 
-        .heal-btn { background: #2ecc71; } 
-        .upgrade-btn { background: #9b59b6; } 
+        .game-btn { border: 2px solid #555; border-radius: 50%; color: white; width: 60px; height: 60px; font-size: 24px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 0px #222; background: rgba(255, 255, 255, 0.1); }
+        .game-btn:active { transform: translateY(5px); box-shadow: none; background: rgba(255, 255, 255, 0.3); }
+        .attack-btn { background: #e74c3c; border-color: #c0392b; box-shadow: 0 5px 0px #80140a; width: 70px; height: 70px; font-size: 30px; } 
+        .heal-btn { background: #2ecc71; border-color: #27ae60; box-shadow: 0 5px 0px #145b32; } 
+        .upgrade-btn { background: #9b59b6; border-color: #8e44ad; box-shadow: 0 5px 0px #4d245e; } 
     </style>
 </head>
 <body>
 
     <div id="main-menu" class="screen" style="display: flex;">
-        <h1>रोबोट वॉर्स 🤖</h1>
-        <p>मल्टीप्लेयर एक्शन गेम</p>
-        <button class="btn btn-play" onclick="tryStartGame()">🎮 गेम खेलें</button>
-        <button class="btn btn-admin" onclick="showScreen('admin-login')">⚙️ एडमिन</button>
+        <div style="z-index: 10;">
+            <h1>रोबोट वॉर्स 🤖</h1>
+            <p>ओरिजिनल सिटी एक्शन</p>
+            <button class="btn btn-play" onclick="tryStartGame()">🎮 गेम खेलें</button>
+            <button class="btn btn-admin" onclick="showScreen('admin-login')">⚙️ एडमिन</button>
+        </div>
     </div>
 
-    <div id="admin-login" class="screen">
+    <div id="admin-login" class="screen" style="background: #111;">
         <div class="admin-box">
             <h2>एडमिन लॉगिन 🔐</h2>
             <input type="password" id="adminPass" placeholder="पासवर्ड (admin123)">
@@ -85,7 +114,7 @@
         </div>
     </div>
 
-    <div id="admin-dashboard" class="screen">
+    <div id="admin-dashboard" class="screen" style="background: #111;">
         <div class="admin-box">
             <h2>कंट्रोल रूम 👑</h2>
             <p>गेम स्टेटस: <strong id="lock-status" style="color: green;">खुला है 🟢</strong></p>
@@ -98,6 +127,8 @@
 
     <div id="game-screen" class="screen" style="padding: 0;">
         <div id="game-world">
+            <div class="road"></div>
+            
             <button style="position:absolute; top:40px; right:5px; z-index:30; background:red; color:white; border:none; padding:5px; border-radius:5px;" onclick="closeGame()">❌</button>
             
             <div id="score-board">
@@ -119,16 +150,16 @@
             <div class="item medkit" style="left: 60%;">💊</div>
             <div class="item coin" style="left: 75%;">🪙</div>
 
-            <div id="friend1" class="friend"><img src="https://api.dicebear.com/7.x/adventurer/svg?seed=F1" style="width:100%;"><div class="friend-label">दोस्त 1</div></div>
-            <img id="hero" src="https://api.dicebear.com/7.x/adventurer/svg?seed=Ninja" alt="Hero">
-            <div id="friend2" class="friend"><img src="https://api.dicebear.com/7.x/adventurer/svg?seed=F2" style="width:100%;"><div class="friend-label">दोस्त 2</div></div>
-            <img id="enemy" src="https://api.dicebear.com/7.x/bottts/svg?seed=EvilBot" alt="Enemy">
+            <div id="friend1" class="friend"><img src="https://api.dicebear.com/7.x/miniavs/svg?seed=Friend1&backgroundColor=transparent" style="height:100%;"><div class="friend-label">दोस्त 1</div></div>
+            <img id="hero" src="https://api.dicebear.com/7.x/miniavs/svg?seed=NinjaBoy&backgroundColor=transparent" alt="Hero">
+            <div id="friend2" class="friend"><img src="https://api.dicebear.com/7.x/miniavs/svg?seed=Friend2&backgroundColor=transparent" style="height:100%;"><div class="friend-label">दोस्त 2</div></div>
+            <img id="enemy" src="https://api.dicebear.com/7.x/miniavs/svg?seed=RobotBoss&backgroundColor=transparent" alt="Enemy" style="animation-name: breatheEnemy;">
         </div>
 
         <div id="controls-area">
             <div class="joystick-left">
-                <div class="game-btn" ontouchstart="moveHero('left')" onmousedown="moveHero('left')" ontouchend="stopHero()" onmouseup="stopHero()">⬅️</div>
-                <div class="game-btn" ontouchstart="moveHero('right')" onmousedown="moveHero('right')" ontouchend="stopHero()" onmouseup="stopHero()">➡️</div>
+                <div class="game-btn" ontouchstart="moveHero('left')" onmousedown="moveHero('left')">⬅️</div>
+                <div class="game-btn" ontouchstart="moveHero('right')" onmousedown="moveHero('right')">➡️</div>
             </div>
             <div class="action-right">
                 <div class="game-btn heal-btn" ontouchstart="healHero()" onmousedown="healHero()">💖</div>
@@ -139,7 +170,7 @@
     </div>
 
     <script>
-        // --- एडमिन और स्क्रीन लॉजिक ---
+        // --- एडमिन लॉजिक ---
         let isGameLocked = false;
 
         function openFullscreen() {
@@ -193,14 +224,15 @@
         }
 
         function moveHero(dir) {
-            heroEl.classList.add('walking');
+            // नेचुरल भागने का इफ़ेक्ट (हल्का सा उछलना)
+            heroEl.style.transform = "translateY(-10px) rotate(5deg)";
+            setTimeout(() => { heroEl.style.transform = "translateY(0px) rotate(0deg)"; }, 150);
+
             if (dir === 'right' && heroPosition < 80) heroPosition += 5; 
             else if (dir === 'left' && heroPosition > 0) heroPosition -= 5; 
             heroEl.style.left = heroPosition + "%";
             checkItemsCollection(); 
         }
-
-        function stopHero() { heroEl.classList.remove('walking'); }
 
         function checkItemsCollection() {
             let heroRect = heroEl.getBoundingClientRect();
@@ -224,7 +256,7 @@
                 medkits--; heroHP = Math.min(100, heroHP + 40);
                 document.getElementById("medkit-count").innerText = medkits; updateHeroHealth();
                 heroEl.style.filter = "drop-shadow(0px 0px 20px lime)";
-                setTimeout(() => { heroEl.style.filter = "drop-shadow(0px 10px 5px rgba(0,0,0,0.4))"; }, 400);
+                setTimeout(() => { heroEl.style.filter = "drop-shadow(10px 15px 5px rgba(0,0,0,0.7))"; }, 400);
             }
         }
 
@@ -246,13 +278,14 @@
 
         function heroAttack() {
             let distance = enemyEl.getBoundingClientRect().left - heroEl.getBoundingClientRect().right;
-            heroEl.style.transform = "rotate(20deg) translateX(10px)";
+            // असली हमले का एनीमेशन
+            heroEl.style.transform = "rotate(20deg) translateX(20px)";
             setTimeout(() => { heroEl.style.transform = "rotate(0deg) translateX(0)"; }, 200);
             
             if (distance < 70 && enemyHP > 0) {
                 enemyHP = Math.max(0, enemyHP - heroDamage); updateEnemyHealth();
                 enemyEl.style.filter = "brightness(2) invert(1)";
-                setTimeout(() => { enemyEl.style.filter = "drop-shadow(0px 10px 5px rgba(0,0,0,0.4))"; }, 200);
+                setTimeout(() => { enemyEl.style.filter = "drop-shadow(10px 15px 5px rgba(0,0,0,0.7))"; }, 200);
                 friendsCheer();
             }
         }
@@ -264,8 +297,12 @@
                     let distance = enemyEl.getBoundingClientRect().left - heroEl.getBoundingClientRect().right;
                     if (distance > -30 && distance < 80) {
                         heroHP = Math.max(0, heroHP - 10); updateHeroHealth();
-                        heroEl.style.transform = "translateX(-10px)"; 
-                        setTimeout(() => { heroEl.style.transform = "scale(1)"; }, 300);
+                        // दुश्मन का हमला
+                        enemyEl.style.transform = "scaleX(-1) translateX(-20px)"; 
+                        setTimeout(() => { enemyEl.style.transform = "scaleX(-1) translateX(0)"; }, 300);
+                        
+                        heroEl.style.filter = "brightness(0.5) sepia(1) hue-rotate(300deg) saturate(5)";
+                        setTimeout(() => { heroEl.style.filter = "drop-shadow(10px 15px 5px rgba(0,0,0,0.7))"; }, 300);
                     }
                 }
             }, 1500);
@@ -280,9 +317,10 @@
             document.getElementById("enemy-hp-bar").value = enemyHP; document.getElementById("enemy-hp-text").innerText = enemyHP;
             if (enemyHP === 0) {
                 clearInterval(enemyAttackInterval); enemyEl.style.display = "none"; 
-                setTimeout(() => alert("लेवल 1 पार! दुश्मन ख़त्म।"), 500);
+                setTimeout(() => alert("शानदार! आपने शहर को बचा लिया।"), 500);
             }
         }
     </script>
 </body>
 </html>
+
